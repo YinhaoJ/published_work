@@ -7,9 +7,9 @@ This repository contains input files, scripts, and protein structures used in th
 
 ### Protein Structure
 - **BrCas12b.pdb**  
-  Alphafold structure of BrCas12b
+  Alphafold predicted structure of BrCas12b
 - **BrCas12b_RFND.pdb**  
-  Alphafold structure of BrCas12b with R160E/F208W/N524V/D868V mutation
+  Alphafold predicted structure of BrCas12b with R160E/F208W/N524V/D868V mutation
 
 ### mdp files
 - **em.mdp**
