@@ -21,11 +21,11 @@ This repository contains input files, scripts, and protein structures used in th
 - **npt.mdp**
 - **nvtf.mdp**  
 - **nvtq.mdp**
-> for non-PEGylated em -> nvt1 -> nvt2 -> npt -> nvtf (300K or 500K) 
+> for non-PEGylated em -> nvt1 -> nvt2 -> npt -> nvtf (300K or 500K)  
 > for PEGylated em -> nvt1 -> nvt2 -> npt -> nvtq -> nvtf (300K or 500K)
 
 ### Post analysis script
 - **Script.ipynb**  
-  **Get native contact from crystal structure PDB**
-  **Convert secondary structure data (VMD timeline) to dataframe and plot**
+  **Get native contact from crystal structure PDB**  
+  **Convert secondary structure data (VMD timeline) to a dataframe and plot**
 
