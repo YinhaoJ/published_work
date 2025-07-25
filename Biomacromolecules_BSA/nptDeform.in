@@ -1,0 +1,71 @@
+########## Shearing of BSA, plate veloc = 0.0005 A/fs ########## 
+
+########## Variables and Set Up ########## 
+
+variable            temperature string 310          # sets a variable for temperature 
+variable            input string bsa                # sets a variable for input file.data name
+variable            outname string midShear        # sets a variable for output file names
+variable            plateVelocity string 0.0014      # sets a variable for the moving upper plate velocity (A/fs)
+variable            minY string -0.93               # sets a variable for where the lower plate velocity will be assigned
+variable            maxY string 144.21              # sets a variable for where the upper plate velocity will be assigned
+variable            shearRate string 1e-5           # sets a variable for the shear rate of the pbc (1/fs)
+
+units               real                            # variable's unit types
+dimension           3                               # 3D space
+atom_style          full                            # molecular and charge for biomolecs
+boundary            p p p                           # periodic in x,y,z
+newton              on                              # both pairwise and bonded interactions
+
+neighbor            2 bin                           # how atoms are assigned to processors
+neigh_modify        every 1 delay 1 check yes       # how frequent a neighbor list is made
+timestep            2                               # 2 fs
+
+fix                 cmap all cmap charmm36.cmap     # adds cmap fixes to backbone
+fix_modify          cmap energy yes                 # includes potential energy
+
+########## System Style and Coulombics ########## 
+
+bond_style          harmonic                        # E = K(r- r0)^2
+angle_style         charmm                          # E = K(theta -theta0)^2 + K urey-bradley(r-r ub)^2 
+dihedral_style      charmmfsw                       # w/ force switching E = K(1+ cos(n phi - d))
+improper_style      harmonic                        # E = K(X-X0)^2
+
+pair_style          lj/charmmfsw/coul/long 8 12     # inner and outer cuttoff for long range interactions (coulombic interactions) 
+pair_modify         mix arithmetic                  # affects pair interaction coefs https://docs.lammps.org/pair_modify.html
+kspace_style        pppm 1e-6                       # relative error in Coulombic forces
+special_bonds       charmm                          # sets the 3 coefficients to 0.0, 0.0, 0.0 for both LJ and Coulombic interactions
+
+########## Input System and Create Environment ########## 
+read_data           ${input}.data fix cmap crossterm CMAP                       # imports the systems data file
+change_box          all triclinic remap                                         # 6 adjustable size/shape parameters (x,y,z,xy,xz,yz)
+kspace_style        pppm 1e-6                                                   # defined again because box sytle change
+#read_dump           ../../wrappingChange/withNPT/${outname}_NPT.lammpstrj 500000 x y z vx vy vz format native box yes replace yes
+#print 		        "NUMBER OF ATOMS: $(atoms)"
+
+group               protein type 1:41                                                             # group all protein atoms together
+fix                 fixwallshigh protein wall/lj126 yhi EDGE 1.0 1.0 1.1226 units box pbc yes     # creates repulsive LJ potential wall in the upper y plane
+fix                 fixwallslow protein wall/lj126 ylo EDGE 1.0 1.0 1.1226 units box pbc yes      # creates repulsive LJ potential wall in the lower y plane
+
+group               gliquid type 42 43 44 45                                    # group the water and ion molecules (from data file)
+velocity            all create ${temperature} 1234567 rot yes dist gaussian     # set velocity for temperature
+
+########## Run NVT Production for 1 ns ########## 
+fix                 fix1 all shake 1e-4 200 0 m 1.008 a 177                     # will apply restraints to all bonds with hydrogen, and angle ID 177, like LINCS in gromacs
+velocity            gliquid ramp vx 0.0 ${plateVelocity} y ${minY} ${maxY}                  # matches water velocity to the deformed velocity (Couette flow)
+fix                 fix3 all nvt/sllod temp ${temperature} ${temperature} 100.0             # nvt/sllod
+fix                 fix4 all deform 1 xy erate ${shearRate} remap v flip yes units box      # in xy plane, deform with engineering shear strain [1/fs], remap velocities when crossing PBC, box can flip when very skewed, 
+
+compute             cc1 gliquid chunk/atom bin/1d y lower 0.05 units reduced                # chunk the box
+fix                 myac1 gliquid ave/chunk 100 10 1000 cc1 vx file vel.profile.dat         # calculate the velocity from chunk
+
+compute	            usual all temp                                                          # usual temperture
+compute             tilt all temp/deform                                                    # after extract the temperature due to shear
+
+dump                1 all custom 500 ${outname}_prod.lammpstrj id mol type q xs ys zs ix iy iz
+thermo              500
+thermo_style        custom step vol temp c_usual press density etotal evdwl ecoul ebond eangle edihed
+thermo_modify	    temp tilt
+restart             1000000 file.restart
+run                 5000000                                                                # 1000 = .002 ns and  10000000 = 20 ns
+write_data          ${outname}.lmps
+
