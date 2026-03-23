@@ -1,13 +1,14 @@
 # Influence of PEGylation on enzyme structure, dynamics and substrate binding: case study on L-Asparaginase
 This repository contains input files, scripts, and protein structures used in the simulations for the following publication:
 
+
 *Influence of PEGylation on enzyme structure, dynamics and substrate binding: case study on L-Asparaginase*\
 *DOI will be updated upon publication*
-
 
 ---
 
 ## 📂 Content
+
 
 ### Initial_structure_CMD
 Initial structure used for 2µs conventional molecular dynamics (CMD)
@@ -33,6 +34,7 @@ Initial structure used for FM, get from clustering analysis from 2µs CMD
 
 ### mdp files
 Following mdp files is included
+
 - **em.mdp**
 - **nvt1_310K.mdp**
 - **npt1_310K.mdp**
@@ -49,7 +51,6 @@ Non-PEGylated: `em → nvt1_310K → npt1_310K → npt_mtd`
 PEGylated: `em → nvt1_310K → npt1_310K → nvtq → npt_mtd`
 
 
-
 ### FM
 Files needed for FM
 - **ASNase_ASN**
@@ -59,6 +60,7 @@ Files needed for FM
 
 Within each folder, contains \_alignment.pdb file for structure alignment for RMSD calculation and definition of the funnel shaped potential, plumed_FM_\*.dat file input file for FM, and plumed_FM_*_reweight.dat file for reweighting and get 2D free energy profile.
 
+
 ### Post_analysis_script
 **Original code is conceptualized, then partially realized and improved by Gemini.**
 - **FM_data_processing.ipynb**  
@@ -67,7 +69,3 @@ Within each folder, contains \_alignment.pdb file for structure alignment for RM
   Calculate the Bond vector auto correlation function from different level (active site, shell within active site, whole protein)
 - **PSF_Ca.py**  
   Calculate partial structure factor between different component of the system
-
-    
-
-
